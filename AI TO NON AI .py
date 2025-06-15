@@ -1,3 +1,4 @@
+import os
 import nltk
 import random
 import chardet
@@ -57,32 +58,32 @@ def process_text(input_text):
     enhanced_text = "\n".join(enhanced_sentences)
     return enhanced_text
 
-# Function to read text from a file, process it, and save to a new file
-def process_file(input_file_path, output_file_path):
-    # Detect encoding using chardet
-    with open(input_file_path, 'rb') as raw_file:
+# Function to detect encoding and read file
+def read_file_with_encoding(file_path):
+    with open(file_path, 'rb') as raw_file:
         result = chardet.detect(raw_file.read())
-        detected_encoding = result['encoding']
-        print(f"Detected encoding: {detected_encoding}")
+        encoding = result['encoding']
+    with open(file_path, 'r', encoding=encoding, errors='ignore') as file:
+        return file.read()
 
-    # Read the input file
-    with open(input_file_path, 'r', encoding=detected_encoding, errors='ignore') as file:
-        input_text = file.read()
-
-    # Process the text
-    output_text = process_text(input_text)
-
-    # Write the processed text to an output file
-    with open(output_file_path, 'w', encoding='utf-8') as file:
-        file.write(output_text)
-
-    print(f"✅ Processed text has been saved to: {output_file_path}")
+# Function to process all .txt files in a folder
+def process_all_txt_files_in_folder(folder_path):
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".txt") and not filename.endswith("_processed.txt"):
+            input_path = os.path.join(folder_path, filename)
+            output_path = os.path.join(folder_path, filename.replace(".txt", "_processed.txt"))
+            
+            print(f"📄 Processing: {filename}")
+            try:
+                input_text = read_file_with_encoding(input_path)
+                processed_text = process_text(input_text)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(processed_text)
+                print(f"✅ Saved to: {output_path}\n")
+            except Exception as e:
+                print(f"❌ Failed to process {filename}: {e}\n")
 
 # Example usage
 if __name__ == "__main__":
-    # Set the input and output file paths
-    input_file_path = 'What is data mining.txt'  # Change if needed
-    output_file_path = input_file_path.replace('.txt', '_processed.txt')
-
-    # Process the file
-    process_file(input_file_path, output_file_path)
+    folder_path = "."  # Change to your folder if needed, or use input()
+    process_all_txt_files_in_folder(folder_path)
